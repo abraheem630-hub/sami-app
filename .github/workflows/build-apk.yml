@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Create Android project
         run: |
-          mkdir -p sami-app/app/src/main/java/com/samialfalahi/app
+          mkdir -p sami-app/app/src/main/java/com/sami/app
           mkdir -p sami-app/app/src/main/res/layout
           mkdir -p sami-app/app/src/main/res/values
 
@@ -32,12 +32,12 @@ jobs:
           }
 
           rootProject.name = "SamiApp"
-          include ":app"
+          include(":app")
           EOF
 
           cat > sami-app/build.gradle <<'EOF'
           plugins {
-              id 'com.android.application' version '8.7.3' apply false
+              id 'com.android.application' version '8.6.1' apply false
           }
           EOF
 
@@ -47,32 +47,29 @@ jobs:
           }
 
           android {
-              namespace 'com.samialfalahi.app'
+              namespace 'com.sami.app'
               compileSdk 35
 
               defaultConfig {
-                  applicationId 'com.samialfalahi.app'
+                  applicationId 'com.sami.app'
                   minSdk 23
                   targetSdk 35
                   versionCode 1
-                  versionName "1.0"
+                  versionName '1.0'
               }
           }
           EOF
 
           cat > sami-app/app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-              <uses-permission android:name="android.permission.INTERNET" />
 
               <application
-                  android:theme="@style/AppTheme"
-                  android:label="تطبيق سامي الفلاحي"
                   android:allowBackup="true"
-                  android:supportsRtl="true">
+                  android:label="تطبيق سامي الفلاحي"
+                  android:theme="@style/AppTheme">
 
                   <activity
                       android:name=".MainActivity"
-                      android:screenOrientation="portrait"
                       android:exported="true">
 
                       <intent-filter>
@@ -81,7 +78,9 @@ jobs:
                       </intent-filter>
 
                   </activity>
+
               </application>
+
           </manifest>
           EOF
 
@@ -89,16 +88,89 @@ jobs:
           <resources>
               <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
                   <item name="android:fontFamily">sans</item>
-                  <item name="android:windowLightStatusBar">false</item>
-                  <item name="android:statusBarColor">#111111</item>
-                  <item name="android:navigationBarColor">#111111</item>
+                  <item name="android:colorAccent">#F57C00</item>
+                  <item name="android:navigationBarColor">#000000</item>
+                  <item name="android:statusBarColor">#F57C00</item>
               </style>
           </resources>
           EOF
 
           cat > sami-app/app/src/main/res/layout/activity_main.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+
+          <LinearLayout
+              xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="#F
+              android:orientation="vertical"
+              android:gravity="center"
+              android:padding="24dp"
+              android:background="#FFF8F0">
+
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="تطبيق سامي الفلاحي"
+                  android:textSize="28sp"
+                  android:textStyle="bold"
+                  android:textColor="#F57C00"
+                  android:layout_marginBottom="15dp" />
+
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="صوتك يصل... وطلبك يُتابع"
+                  android:textSize="18sp"
+                  android:textColor="#333333"
+                  android:layout_marginBottom="30dp" />
+
+              <Button
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:text="تقديم طلب أو شكوى"
+                  android:textSize="17sp"
+                  android:backgroundTint="#F57C00"
+                  android:textColor="#FFFFFF" />
+
+              <Button
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:text="متابعة طلبي"
+                  android:textSize="17sp"
+                  android:layout_marginTop="15dp"
+                  android:backgroundTint="#F57C00"
+                  android:textColor="#FFFFFF" />
+
+          </LinearLayout>
+          EOF
+
+          cat > sami-app/app/src/main/java/com/sami/app/MainActivity.java <<'EOF'
+          package com.sami.app;
+
+          import android.app.Activity;
+          import android.os.Bundle;
+
+          public class MainActivity extends Activity {
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  setContentView(R.layout.activity_main);
+              }
+          }
+          EOF
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build APK
+        working-directory: sami-app
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sami-App-APK
+          path: sami-app/app/build/outputs/apk/debug/app-debug.apk
